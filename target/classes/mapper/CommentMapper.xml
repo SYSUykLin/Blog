@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.Blog.Dao.CommentDao">
+    <resultMap id="comment" type="com.Blog.Entity.Comment">
+        <id column="id" property="id"></id>
+        <result column="userIp" property="userIp"></result>
+        <result column="blogId" property="blogId"></result>
+        <result column="content" property="content"></result>
+        <result column="commentDate" property="commentDate"></result>
+        <result column="state" property="state"></result>
+        <association property="blog" column="blogId" javaType="com.Blog.Entity.Blog"
+                     select="com.Blog.Dao.BlogDao.getBlogById" fetchType="eager"></association>
+    </resultMap>
+
+    <select id="list" parameterType="com.Blog.Entity.Comment" resultMap="comment">
+        select * from comment
+        <where>
+            <if test="blogId!=null">
+                and blogId=#{blogId}
+            </if>
+            <if test="state!=null">
+                and state=#{state}
+            </if>
+        </where>
+        order by commentDate desc
+    </select>
+
+    <select id="getListByPage" parameterType="java.util.Map" resultMap="comment">
+        select * from comment
+        <where>
+            <if test="blogId != null">
+                and blogId = #{blogId}
+            </if>
+            <if test="state != null">
+                and state = #{state}
+            </if>
+        </where>
+        order by commentDate desc
+        <if test="start != null and size != null">
+            limit #{start},#{size}
+        </if>
+    </select>
+
+    <select id="getTotal" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select count(*) from comment
+        <where>
+            <if test="blogId != null">
+                and blogId = #{blogId}
+            </if>
+            <if test="state != null">
+                and state = #{state}
+            </if>
+        </where>
+    </select>
+
+    <insert id="add" parameterType="com.Blog.Entity.Comment" useGeneratedKeys="true" keyProperty="id">
+        insert into comment values(null,#{userIp},#{blogId},#{content},now(),0)
+    </insert>
+
+    <delete id="delete" parameterType="java.lang.Integer">
+         delete from comment where blogId = #{id}
+    </delete>
+
+    <update id="updateComment" parameterType="com.Blog.Entity.Comment">
+          update comment
+          <set>
+              <if test="state != null">
+                  state = #{state},
+              </if>
+          </set>
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <delete id="deleteById" parameterType="com.Blog.Entity.Comment">
+        delete from comment
+        <where>
+            and id = #{id}
+        </where>
+    </delete>
+
+</mapper>

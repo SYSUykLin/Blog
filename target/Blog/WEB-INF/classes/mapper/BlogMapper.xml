@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.Blog.Dao.BlogDao">
+    <resultMap id="Blog" type="com.Blog.Entity.Blog">
+        <id column="id" property="id"></id>
+        <result column="title" property="title"></result>
+        <result column="summary" property="summary"></result>
+        <result column="releasedate" property="releasedate"></result>
+        <result column="clickhit" property="clickhie"></result>
+        <result column="replyhit" property="replyhit"></result>
+        <result column="context" property="context"></result>
+        <result column="keyword" property="keyword"></result>
+
+        <association property="blogType" javaType="com.Blog.Entity.BlogType" column="typeid" select="com.Blog.Dao.BlogTypeDao.findById" fetchType="eager"></association>
+    </resultMap>
+
+    <select id="countList" resultMap="Blog">
+        select DATE_FORMAT(releasedate,'%Y-%m') as releasedateString,count(*) as blogcount
+        from blog group by DATE_FORMAT(releasedate,'%Y-%m')
+        order by DATE_FORMAT(releasedate,'%Y-%m') desc
+    </select>
+
+    <select id="list" resultMap="Blog" parameterType="java.util.Map">
+        select * from blog
+        <where>
+            <if test="title != null and title != ''">
+                and title like #{title}
+            </if>
+            <if test="typeid != null and typeid != ''">
+                and typeid = #{typeid}
+            </if>
+            <if test="releasedateString != null and releasedateString != ''">
+                and DATE_FORMAT(releasedate,'%Y-%m') = #{releasedateString}
+            </if>
+        </where>
+        order by releasedate DESC
+        <if test="start != null and size != null">
+            limit #{start},#{size}
+        </if>
+    </select>
+
+    <select id="getTotal" resultType="java.lang.Integer" parameterType="java.util.Map">
+        select count(*) from blog
+        <where>
+            <if test="title != null and title != ''">
+                and title like #{title}
+            </if>
+            <if test="typeid != null and typeid != ''">
+                and typeid = #{typeid}
+            </if>
+            <if test="releasedateString != null and releasedateString != ''">
+                and DATE_FORMAT(releasedate,'%Y-%m') = #{releasedateString}
+            </if>
+        </where>
+    </select>
+
+    <select id="getBlogById" resultMap="Blog" parameterType="java.lang.Integer">
+        select * from blog where id = #{id}
+    </select>
+
+    <update id="update" parameterType="com.Blog.Entity.Blog">
+        update blog
+        <set>
+
+            <if test="keyword != null and keyword != ''">
+                keyword = #{keyword},
+            </if>
+
+            <if test="context != null and context != ''">
+                context = #{context},
+            </if>
+
+            <if test="blogType.id != null">
+               typeid = #{blogType.id},
+            </if>
+
+            <if test="summary != null and summary != ''">
+                 summary = #{summary},
+            </if>
+
+            <if test="title != null and title != '' ">
+                 title = #{title},
+            </if>
+
+            <if test="clickhie != null">
+                clickhit = #{clickhie},
+            </if>
+            <if test="replyhit != null">
+                replyhit = #{replyhit},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <select id="getLastBlog" parameterType="java.lang.Integer" resultMap="Blog">
+        select * from blog where id &lt; #{id} order by id desc limit 1;
+    </select>
+
+    <select id="getNextBlog" parameterType="java.lang.Integer" resultMap="Blog">
+        select * from blog where id &gt; #{id} order by id asc limit 1;
+    </select>
+
+    <insert id="add" parameterType="com.Blog.Entity.Blog" useGeneratedKeys="true" keyProperty="id">
+          insert into blog values(null,#{title},#{summary},now(),0,0,#{context},#{blogType.id},#{keyword})
+</insert>
+
+
+    <delete id="delete" parameterType="java.lang.Integer">
+         delete from blog where id = #{id}
+    </delete>
+</mapper>
